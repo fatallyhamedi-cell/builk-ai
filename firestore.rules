@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return (isSignedIn() && request.auth.uid == userId) || 
+             (userId.matches('^offline_.*') || userId.matches('^guest_.*'));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      function isValidUser(data) {
+        return (data.keys().hasAll(['email', 'learningLevel']) &&
+               data.email is string &&
+               data.learningLevel in ['beginner', 'intermediate', 'advanced']) ||
+               (userId.matches('^offline_.*') || userId.matches('^guest_.*'));
+      }
+
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'learningLevel', 'streakDays', 'totalPracticeMinutes', 'lastPracticeDate', 
+          'dailyGoalMinutes', 'displayName', 'photoURL', 'neuralReflection'
+        ])
+      );
+    }
+
+    // Conversation Rules
+    match /users/{userId}/conversations/{convId} {
+      function isValidConversation(data) {
+        return data.keys().hasAll(['userId', 'title']) &&
+               data.userId == userId &&
+               data.title is string && data.title.size() <= 200;
+      }
+
+      allow list, get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidConversation(request.resource.data);
+      allow update: if isOwner(userId) && (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'lastMessage', 'updatedAt'])
+      );
+      allow delete: if isOwner(userId);
+    }
+
+    // Message Rules
+    match /users/{userId}/conversations/{convId}/messages/{msgId} {
+      function isValidMessage(data) {
+        return data.keys().hasAll(['role', 'content', 'createdAt']) &&
+               data.role in ['user', 'assistant', 'system'] &&
+               data.content is string && data.content.size() <= 5000;
+      }
+
+      allow list, get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidMessage(request.resource.data);
+    }
+
+    // Achievement Rules
+    match /users/{userId}/achievements/{achId} {
+      allow list, get: if isOwner(userId);
+      allow create, update: if isOwner(userId);
+    }
+
+    // Fact Rules
+    match /users/{userId}/facts/{factId} {
+      allow list, get: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Weak Spot Rules
+    match /users/{userId}/weakSpots/{spotId} {
+      allow list, get: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Vocabulary Rules
+    match /users/{userId}/vocabulary/{vocabId} {
+      allow list, get: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Training Log Rules
+    match /users/{userId}/training_logs/{logId} {
+      allow list, get: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Connection Test Rules
+    match /test/connection {
+      allow get: if true;
+    }
+  }
+}

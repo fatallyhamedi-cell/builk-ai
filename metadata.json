@@ -1,0 +1,12 @@
+{
+  "name": "Bulk AI",
+  "description": "An AI-powered English conversation tutor with voice support, emotional intelligence, and personalized learning paths.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "AI conversation",
+    "Voice recognition",
+    "Learning analytics"
+  ]
+}

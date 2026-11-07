@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile and learning progress",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "learningLevel": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+        "streakDays": { "type": "integer" },
+        "totalPracticeMinutes": { "type": "integer" },
+        "lastPracticeDate": { "type": "string", "format": "date-time" },
+        "dailyGoalMinutes": { "type": "integer" }
+      },
+      "required": ["email", "learningLevel"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "A chat session between user and Bulk AI",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Individual messages in a conversation",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+        "content": { "type": "string" },
+        "emotion": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["role", "content", "createdAt"]
+    },
+    "Achievement": {
+      "title": "Achievement",
+      "description": "Earned milestones",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "earnedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Fact": {
+      "title": "User Fact",
+      "description": "Information learned about the user during conversation",
+      "type": "object",
+      "properties": {
+        "content": { "type": "string" },
+        "category": { "type": "string" },
+        "confidence": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["content", "category"]
+    },
+    "Vocabulary": {
+      "title": "Lexicon Entry",
+      "description": "Vocabulary words learned or used by the user",
+      "type": "object",
+      "properties": {
+        "word": { "type": "string" },
+        "definition": { "type": "string" },
+        "pos": { "type": "string" },
+        "mastery": { "type": "number" },
+        "lastSeen": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["word", "definition", "pos"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual user profiles"
+    },
+    "/users/{userId}/conversations/{convId}": {
+      "schema": "Conversation",
+      "description": "User's chat sessions"
+    },
+    "/users/{userId}/conversations/{convId}/messages/{msgId}": {
+      "schema": "Message",
+      "description": "Messages within a conversation"
+    },
+    "/users/{userId}/achievements/{achId}": {
+      "schema": "Achievement",
+      "description": "Achievements earned by the user"
+    },
+    "/users/{userId}/facts/{factId}": {
+      "schema": "Fact",
+      "description": "Facts learned about the user"
+    },
+    "/users/{userId}/weakSpots/{spotId}": {
+      "schema": "object",
+      "description": "Grammar and verb weak spots identified during practice"
+    },
+    "/users/{userId}/vocabulary/{vocabId}": {
+      "schema": "Vocabulary",
+      "description": "Vocabulary words and mastery levels"
+    },
+    "/users/{userId}/training_logs/{logId}": {
+      "schema": "object",
+      "description": "Logs for the self-training neural loop and quality filtering"
+    }
+  }
+}
